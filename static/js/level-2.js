@@ -2,6 +2,11 @@
 // Store API link
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
+var techtonicUrl = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json"
+
+
+
+
 function circleSize(mag) {
   return mag * 40000;
 }
@@ -48,36 +53,6 @@ function depthColor(depth){
   }
 }
 
-// Perform a GET request to the query URL
-d3.json(url, function(data) {
-  // Once we get a response, send the data.features object to the createFeatures function
-  createFeatures(data.features);
-});
-
-function createFeatures(earthquakeData) {
-console.log(earthquakeData);
-  var earthquakes = L.geoJSON(earthquakeData, {
-  // Define a function we want to run once for each feature in the features array
-  // Give each feature a popup describing the place and time of the earthquake
- onEachFeature : function (feature, layer) {
-
-    layer.bindPopup("<h3>" + feature.properties.place +
-      "</h3><hr><p>" + new Date(feature.properties.time) + "</p>" + "<p> Magnitude: " +  feature.properties.mag + "</p>")
-    },     pointToLayer: function (feature, latlng) {
-      return new L.circle(latlng,
-        {radius: circleSize(feature.properties.mag),
-        fillColor: circleColor(feature.properties.mag),
-        fillOpacity: depthColor(feature.geometry.coordinates[2]),
-        stroke: false
-    })
-  }
-  });
-    
-
-
-  // Sending our earthquakes layer to the createMap function
-  createMap(earthquakes);
-}
 
 function createMap(earthquakes) {
 
@@ -102,18 +77,23 @@ function createMap(earthquakes) {
     "Dark Map": darkmap
   };
 
+  //create layers
+  var techPlates = new L.layerGroup();
+  var NewEarthquakes = new L.layerGroup();
+  console.log(techPlates);
   // Create overlay object to hold our overlay layer
   var overlayMaps = {
-    Earthquakes: earthquakes
+    Earthquakes: earthquakes,
+    TechtonicPlates: techPlates
   };
 
   // Create our map, giving it the satelitemap and earthquakes layers to display on load
   var myMap = L.map("mapid", {
     center: [40.7128, -74.0060],
     zoom: 3,
-    layers: [satelitemap, earthquakes]
+    layers: [satelitemap, darkmap]
   });
-
+  satelitemap.addTo(myMap);
   // Create a layer control
   // Pass in our baseMaps and overlayMaps
   // Add the layer control to the map
@@ -121,5 +101,42 @@ function createMap(earthquakes) {
     collapsed: false
   }).addTo(myMap);
 
+    //perform a GET request to te github tectonic URL
+    d3.json(techtonicUrl, function(techtonic){
+        L.geoJSON(techtonic, {
+            color: "blue",
+            weight: 2.5
+        }).addTo(myMap);
+  
+    });
 
-}
+} //end of create map function
+
+// Perform a GET request to the USGS URL
+d3.json(url, function(data) {
+    // Once we get a response, send the data.features object to the createFeatures function
+    createFeatures(data.features);
+  });
+  
+function createFeatures(earthquakeData) {
+  console.log(earthquakeData);
+  var earthquakes = L.geoJSON(earthquakeData, {
+    // Define a function we want to run once for each feature in the features array
+    // Give each feature a popup describing the place and time of the earthquake
+   onEachFeature : function (feature, layer) {
+  
+      layer.bindPopup("<h3>" + feature.properties.place +
+        "</h3><hr><p>" + new Date(feature.properties.time) + "</p>" + "<p> Magnitude: " +  feature.properties.mag + "</p>")
+      },     pointToLayer: function (feature, latlng) {
+        return new L.circle(latlng,
+          {radius: circleSize(feature.properties.mag),
+          fillColor: circleColor(feature.properties.mag),
+          fillOpacity: depthColor(feature.geometry.coordinates[2]),
+          stroke: false
+      })
+    }
+    });
+    // Sending our earthquakes layer to the createMap function
+    createMap(earthquakes);
+  }
+
