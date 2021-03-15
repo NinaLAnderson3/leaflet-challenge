@@ -56,7 +56,7 @@ function depthColor(depth){
 
 function createMap(earthquakes) {
 
-  // Define satelitemap and darkmap layers
+  // Define satelitemap and light map layers
   var satelitemap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
@@ -64,22 +64,23 @@ function createMap(earthquakes) {
     accessToken: API_KEY
   });
 
-  var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-    maxZoom: 18,
-    id: "mapbox.dark",
-    accessToken: API_KEY
-  });
+  var light = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+  attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+  maxZoom: 18,
+  id: "light-v10",
+  accessToken: API_KEY
+});
 
-  // Define a baseMaps object to hold our base layers
+  Define a baseMaps object to hold our base layers
   var baseMaps = {
     "Satelite Map": satelitemap,
-    "Dark Map": darkmap
+    "Light Map": light
   };
 
-  //create layers
+  create layers
   var techPlates = new L.layerGroup();
   var NewEarthquakes = new L.layerGroup();
+
   console.log(techPlates);
   // Create overlay object to hold our overlay layer
   var overlayMaps = {
@@ -91,7 +92,7 @@ function createMap(earthquakes) {
   var myMap = L.map("mapid", {
     center: [40.7128, -74.0060],
     zoom: 3,
-    layers: [satelitemap, darkmap]
+    layers: [satelitemap, light]
   });
   satelitemap.addTo(myMap);
   // Create a layer control
@@ -100,13 +101,15 @@ function createMap(earthquakes) {
   L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+earthquakes.addTo(NewEarthquakes)
+NewEarthquakes.addTo(myMap)
 
     //perform a GET request to te github tectonic URL
     d3.json(techtonicUrl, function(techtonic){
         L.geoJSON(techtonic, {
             color: "blue",
             weight: 2.5
-        }).addTo(myMap);
+        }).addTo(techPlates);
   
     });
 
