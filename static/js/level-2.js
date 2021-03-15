@@ -71,13 +71,13 @@ function createMap(earthquakes) {
   accessToken: API_KEY
 });
 
-  Define a baseMaps object to hold our base layers
+  // Define a baseMaps object to hold our base layers
   var baseMaps = {
     "Satelite Map": satelitemap,
     "Light Map": light
   };
 
-  create layers
+  // create layers
   var techPlates = new L.layerGroup();
   var NewEarthquakes = new L.layerGroup();
 
